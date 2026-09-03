@@ -1,0 +1,18 @@
+{
+  "latestVersion": "1.0.5",
+  "releaseDate": "2026-08-28",
+  "changes": "1. 修复了xxx问题\n2. 优化了yyy性能\n3. 新增zzz功能",
+  "minAutoUpdateVersion": "1.0.0",
+  "patches": [
+    {
+      "from": "1.0.4",
+      "to": "1.0.5",
+      "url": "https://gitee.com/你的用户名/你的仓库/releases/download/v1.0.5/patch-1.0.5.zip",
+      "backupUrl": "https://蓝奏云直链/patch-1.0.5.zip",
+      "size": 245760,
+      "checksum": "sha256:在这里填入实际的SHA256",
+      "changes": "1. 修复了xxx问题\n2. 优化了yyy性能",
+      "requiresFullInstall": false
+    }
+  ]
+}
