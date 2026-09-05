@@ -1,0 +1,1777 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI龙虾 - 你的智能桌面宠物助手</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+/* ===== CSS 变量 ===== */
+:root {
+  --bg-primary: #FAF8F5;
+  --bg-secondary: #FFFFFF;
+  --bg-dark: #1A1A2E;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A5A;
+  --text-muted: #8B8B9B;
+  --text-on-dark: #F0EDE8;
+  --accent: #FF6B35;
+  --accent-light: #FF8C5A;
+  --accent-dark: #E55A2B;
+  --secondary: #2D3561;
+  --highlight: #00B4D8;
+  --border: #E8E4DE;
+  --shadow-sm: 0 2px 8px rgba(26, 26, 46, 0.06);
+  --shadow-md: 0 8px 24px rgba(26, 26, 46, 0.08);
+  --shadow-lg: 0 16px 48px rgba(26, 26, 46, 0.12);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 可交互元素恢复正常光标和选择 */
+a, button, input, textarea, [role="button"] {
+  cursor: pointer;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+input, textarea {
+  cursor: text;
+}
+
+/* ===== 导航栏 ===== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(250, 248, 245, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.nav-logo-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-logo-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.nav-logo-img { width: 32px; height: 32px; object-fit: contain; }
+.nav-logo-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+.nav-cta {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.nav-cta:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* ===== Hero 区 ===== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: float 8s ease-in-out infinite;
+}
+
+.hero-blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--accent);
+  top: -100px;
+  right: -100px;
+}
+
+.hero-blob-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--highlight);
+  bottom: -50px;
+  left: -50px;
+  animation-delay: -4s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -30px) scale(1.05); }
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-content {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.hero-badge-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+.hero-title-highlight {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 36px;
+  max-width: 500px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.btn-primary {
+  padding: 14px 32px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.35);
+}
+
+.btn-secondary {
+  padding: 14px 32px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat-number {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hero-stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Hero 视觉区 */
+.hero-visual {
+  position: relative;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 1s ease-out 0.3s both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pet-card {
+  width: 320px;
+  height: 400px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  animation: petFloat 4s ease-in-out infinite;
+}
+
+@keyframes petFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.pet-card-header {
+  height: 60px;
+  background: linear-gradient(135deg, var(--secondary), var(--bg-dark));
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 8px;
+}
+
+.pet-card-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.pet-card-dot.red { background: #FF5F57; }
+.pet-card-dot.yellow { background: #FEBC2E; }
+.pet-card-dot.green { background: #28C840; }
+
+.pet-card-body {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 60px);
+  background: linear-gradient(180deg, #FFF8F5 0%, #FFF 100%);
+}
+
+.pet-avatar {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.3);
+  position: relative;
+}
+
+.pet-avatar::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  filter: blur(4px);
+}
+
+.pet-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.pet-status {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pet-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #28C840;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* 对话气泡 */
+.chat-bubble {
+  position: absolute;
+  background: var(--bg-secondary);
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 180px;
+  animation: bubbleFloat 3s ease-in-out infinite;
+}
+
+.chat-bubble::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--bg-secondary);
+  transform: rotate(45deg);
+}
+
+.chat-bubble-1 {
+  top: 80px;
+  left: -40px;
+  animation-delay: 0s;
+}
+
+.chat-bubble-1::before {
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.chat-bubble-2 {
+  bottom: 100px;
+  right: -30px;
+  animation-delay: -1.5s;
+}
+
+.chat-bubble-2::before {
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ===== 通用区块 ===== */
+.section {
+  padding: 100px 24px;
+}
+
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== 功能特性 ===== */
+.features {
+  background: var(--bg-secondary);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  transition: all 0.3s;
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--highlight));
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: transparent;
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.feature-icon.orange { background: rgba(255, 107, 53, 0.1); }
+.feature-icon.blue { background: rgba(0, 180, 216, 0.1); }
+.feature-icon.purple { background: rgba(139, 92, 246, 0.1); }
+.feature-icon.green { background: rgba(40, 200, 64, 0.1); }
+
+.feature-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.feature-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== 展示区 ===== */
+.showcase {
+  background: var(--bg-dark);
+  color: var(--text-on-dark);
+}
+
+.showcase .section-title { color: var(--text-on-dark); }
+.showcase .section-subtitle { color: rgba(240, 237, 232, 0.7); }
+
+.showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.showcase-content h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.showcase-content p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(240, 237, 232, 0.7);
+  margin-bottom: 24px;
+}
+
+.showcase-list {
+  list-style: none;
+}
+
+.showcase-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 15px;
+  color: rgba(240, 237, 232, 0.85);
+}
+
+.showcase-list li::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.showcase-visual {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.mock-window {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mock-window-header {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mock-window-body {
+  padding: 20px;
+  min-height: 200px;
+}
+
+.mock-message {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.mock-message.user {
+  flex-direction: row-reverse;
+}
+
+.mock-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.mock-avatar.ai { background: var(--accent); }
+.mock-avatar.user { background: var(--highlight); }
+
+.mock-bubble {
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  max-width: 80%;
+  line-height: 1.6;
+}
+
+.mock-message.ai .mock-bubble {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(240, 237, 232, 0.9);
+}
+
+.mock-message.user .mock-bubble {
+  background: var(--accent);
+  color: white;
+}
+
+/* ===== 使用指南 ===== */
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+.guide-step {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+  position: relative;
+}
+
+.guide-step:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.guide-step-number {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--accent);
+  opacity: 0.2;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.guide-step-content h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.guide-step-content p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.guide-tips {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.guide-tip {
+  display: flex;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(0, 180, 216, 0.05));
+  border: 1px solid rgba(255, 107, 53, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+}
+
+.guide-tip-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.guide-tip h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.guide-tip p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== 下载区 ===== */
+.download {
+  text-align: center;
+}
+
+.download-card {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-radius: var(--radius-lg);
+  padding: 60px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.download-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.download-card h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.download-card p {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.download-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  position: relative;
+}
+
+.btn-white {
+  padding: 14px 32px;
+  background: white;
+  color: var(--accent);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.btn-outline-white {
+  padding: 14px 32px;
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline-white:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.download-info {
+  margin-top: 24px;
+  font-size: 13px;
+  opacity: 0.8;
+  position: relative;
+}
+
+/* ===== Footer ===== */
+.footer {
+  background: var(--bg-dark);
+  color: rgba(240, 237, 232, 0.6);
+  padding: 60px 24px 30px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-brand h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  color: white;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-brand p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.footer-col h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.footer-col ul {
+  list-style: none;
+}
+
+.footer-col li {
+  margin-bottom: 10px;
+}
+
+.footer-col a {
+  color: rgba(240, 237, 232, 0.6);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.footer-col a:hover {
+  color: var(--accent);
+}
+
+.footer-bottom {
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+
+/* ===== 模态框 ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  transform: translateY(20px) scale(0.95);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-overlay.active .modal {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  -webkit-user-select: text;
+  user-select: text;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 20px 0 10px;
+}
+
+.modal-body h4:first-child {
+  margin-top: 0;
+}
+
+.modal-body p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.modal-body ul, .modal-body ol {
+  margin: 10px 0 16px 20px;
+}
+
+.modal-body li {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 6px;
+}
+
+.modal-body code {
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.modal-body .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.modal-body .contact-item:hover {
+  transform: translateX(4px);
+}
+
+.modal-body .contact-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.modal-body .contact-icon.qq { background: rgba(18, 183, 245, 0.1); }
+.modal-body .contact-icon.phone { background: rgba(40, 200, 64, 0.1); }
+.modal-body .contact-icon.github { background: rgba(139, 92, 246, 0.1); }
+.modal-body .contact-icon.email { background: rgba(255, 107, 53, 0.1); }
+
+.modal-body .contact-info h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.modal-body .contact-info span {
+  font-size: 15px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.modal-body .contact-info a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 968px) {
+  .guide-steps { grid-template-columns: 1fr; }
+  .hero-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .hero-content { order: 2; }
+  .hero-visual { order: 1; height: 400px; }
+  .hero-subtitle { margin: 0 auto 36px; }
+  .hero-actions { justify-content: center; }
+  .hero-stats { justify-content: center; }
+  
+  .hero-title { font-size: 40px; }
+  
+  .features-grid { grid-template-columns: 1fr; }
+  .showcase-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+  
+  .nav-links { display: none; }
+}
+
+@media (max-width: 640px) {
+  .hero-title { font-size: 32px; }
+  .section-title { font-size: 28px; }
+  .download-card { padding: 40px 24px; }
+  .download-buttons { flex-direction: column; }
+  .footer-top { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+<!-- SVG 图标库 -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+  <defs>
+    <!-- 调色板/模型图标 -->
+    <symbol id="icon-palette" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2 0-.51-.2-.98-.52-1.34-.33-.36-.52-.82-.52-1.32 0-1.1.9-2 2-2h2.38c3.1 0 5.64-2.54 5.64-5.64C23 6.08 18.08 2 12 2z"/>
+      <circle cx="6.5" cy="11.5" r="1.3" fill="currentColor"/>
+      <circle cx="9.5" cy="7.5" r="1.3" fill="currentColor"/>
+      <circle cx="14.5" cy="7.5" r="1.3" fill="currentColor"/>
+      <circle cx="17.5" cy="11.5" r="1.3" fill="currentColor"/>
+    </symbol>
+    <!-- AI/大脑图标 -->
+    <symbol id="icon-brain" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.5 2A2.5 2.5 0 0 0 7 4.5v.5a2.5 2.5 0 0 0-2 2.45V8a2.5 2.5 0 0 0-1 4.58V14a2.5 2.5 0 0 0 2 2.45V17a2.5 2.5 0 0 0 2.5 2.5h.5a2.5 2.5 0 0 0 2.5-2.5v-12A2.5 2.5 0 0 0 9.5 2z"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.5 2A2.5 2.5 0 0 1 17 4.5v.5a2.5 2.5 0 0 1 2 2.45V8a2.5 2.5 0 0 1 1 4.58V14a2.5 2.5 0 0 1-2 2.45V17a2.5 2.5 0 0 1-2.5 2.5h-.5a2.5 2.5 0 0 1-2.5-2.5v-12A2.5 2.5 0 0 1 14.5 2z"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 5v14M12 8l-2-1M12 8l2-1M12 12l-2-1M12 12l2-1"/>
+    </symbol>
+    <!-- 键盘/命令图标 -->
+    <symbol id="icon-keyboard" viewBox="0 0 24 24">
+      <rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
+    </symbol>
+    <!-- 工具/Agent图标 -->
+    <symbol id="icon-tool" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5 2.5-2.5z"/>
+    </symbol>
+    <!-- 灯泡/提示图标 -->
+    <symbol id="icon-lightbulb" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 18h6M10 21h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/>
+    </symbol>
+    <!-- QQ图标 -->
+    <symbol id="icon-qq" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2C8.5 2 6 4.5 6 8c0 1.5.3 2.8.8 3.8-.5.3-1.3 1-1.5 2-.2 1 .3 1.7.8 2 .3.2.7.2 1 .1-.2.5-.3 1-.3 1.3 0 .8.5 1.3 1.5 1.3.8 0 1.5-.3 2-.8.5.3 1.2.5 2 .5s1.5-.2 2-.5c.5.5 1.2.8 2 .8 1 0 1.5-.5 1.5-1.3 0-.3-.1-.8-.3-1.3.3.1.7.1 1-.1.5-.3 1-1 .8-2-.2-1-1-1.7-1.5-2 .5-1 .8-2.3.8-3.8 0-3.5-2.5-6-6-6zm-2 7a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm4 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+    </symbol>
+    <!-- 电话图标 -->
+    <symbol id="icon-phone" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/>
+    </symbol>
+    <!-- GitHub图标 -->
+    <symbol id="icon-github" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+    </symbol>
+    <!-- 下载图标 -->
+    <symbol id="icon-download" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+    </symbol>
+    <!-- 关闭图标 -->
+    <symbol id="icon-close" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/>
+    </symbol>
+  <symbol id="icon-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol></defs>
+</svg>
+
+
+<!-- 导航栏 -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="#" class="nav-logo">
+      <img src="images/app-icon.png" alt="AI龙虾" class="nav-logo-img">
+      <span class="nav-logo-text">AI龙虾</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">功能特性</a></li>
+      <li><a href="#showcase">产品展示</a></li>
+      <li><a href="#download">下载</a></li>
+    </ul>
+    <a href="https://github.com/yonggezx/ai-lobster-update/releases/latest/download/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe" class="nav-cta" target="_blank" rel="noopener">立即下载</a>
+  </div>
+</nav>
+
+<!-- Hero 区 -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+  </div>
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        全新 v1.0 正式发布
+      </div>
+      <h1 class="hero-title">
+        你的桌面，<br>
+        住着一只<span class="hero-title-highlight">AI龙虾</span>
+      </h1>
+      <p class="hero-subtitle">
+        集 Live2D 虚拟形象、本地 AI 推理、自然语言系统操作为一体的智能桌面宠物助手。让你的电脑不再冰冷。
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/yonggezx/ai-lobster-update/releases/latest/download/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe" class="btn-primary" target="_blank" rel="noopener">
+          <svg width="18" height="18"><use href="#icon-download"/></svg>
+          免费下载
+        </a>
+        <a href="#showcase" class="btn-secondary">
+          了解更多
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-number">100%</span>
+          <span class="hero-stat-label">本地运行</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-number">50+</span>
+          <span class="hero-stat-label">Live2D模型兼容</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-number">0</span>
+          <span class="hero-stat-label">隐私上传</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="chat-bubble chat-bubble-1">帮我打开浏览器</div>
+      <div class="pet-card" style="width:340px;height:420px;overflow:hidden;">
+        <div class="pet-card-header">
+          <span class="pet-card-dot red"></span>
+          <span class="pet-card-dot yellow"></span>
+          <span class="pet-card-dot green"></span>
+          <span style="margin-left:8px;font-size:12px;color:rgba(255,255,255,0.7);">AI龙虾 - 桌面宠物</span>
+        </div>
+        <div class="pet-card-body" style="padding:0;display:flex;align-items:center;justify-content:center;background:#1a1a2e;">
+          <img src="images/pet-window.png" alt="AI龙虾宠物窗口" style="max-width:100%;max-height:100%;object-fit:contain;">
+        </div>
+      </div>
+      <div class="chat-bubble chat-bubble-2">好的，已为你打开~</div>
+    </div>
+  </div>
+</section>
+
+<!-- 功能特性 -->
+<section class="section features" id="features">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-label">Features</span>
+      <h2 class="section-title">不止是宠物，更是你的AI助手</h2>
+      <p class="section-subtitle">融合虚拟形象与AI能力，让桌面宠物真正能听懂、会思考、能动手</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon orange"><svg width="28" height="28"><use href="#icon-palette"/></svg></div>
+        <h3 class="feature-title">Live2D 虚拟形象</h3>
+        <p class="feature-desc">完美兼容所有 Live2D 模型，支持 Cubism 2.0/3.0/4.0。丰富的动作与表情系统，让你的宠物活灵活现。点击不同部位还有惊喜反应。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon blue"><svg width="28" height="28"><use href="#icon-brain"/></svg></div>
+        <h3 class="feature-title">本地 AI 推理</h3>
+        <p class="feature-desc">支持 Ollama 本地大模型运行，对话数据完全不上传，隐私安全有保障。同时兼容 OpenAI、DeepSeek、阿里云百炼等云端 API。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple"><svg width="28" height="28"><use href="#icon-keyboard"/></svg></div>
+        <h3 class="feature-title">自然语言操作</h3>
+        <p class="feature-desc">用自然语言指挥电脑：打开软件、管理文件、执行命令、安装卸载。AI 会理解你的意图并自动执行，无需记忆复杂指令。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green"><svg width="28" height="28"><use href="#icon-tool"/></svg></div>
+        <h3 class="feature-title">Agent 智能体</h3>
+        <p class="feature-desc">内置多角色智能体系统，程序员、研究员、文案写手、运维工程师一键切换。支持工具调用、文件读写、多轮推理，真正能干活的 AI。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 使用指南 -->
+<section class="section guide" id="guide">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-label">Quick Start</span>
+      <h2 class="section-title">三步上手，开箱即用</h2>
+      <p class="section-subtitle">无需复杂配置，下载安装后即可开始使用</p>
+    </div>
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="guide-step-number">01</div>
+        <div class="guide-step-content">
+          <h3>下载安装</h3>
+          <p>从官网下载最新版本安装包，双击运行安装程序。支持 Windows 10/11 64位系统，安装过程全自动完成。</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-number">02</div>
+        <div class="guide-step-content">
+          <h3>配置 AI 模型</h3>
+          <p>打开 AI 配置页面，选择本地 Ollama 模型或云端 API（OpenAI、DeepSeek、阿里云百炼等）。一键接入预设配置，也可手动添加自定义模型。</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-number">03</div>
+        <div class="guide-step-content">
+          <h3>开始对话</h3>
+          <p>在对话页面与 AI 龙虾交流，支持自然语言操作系统、文件管理、代码编写等。开启 Agent 模式后，AI 可自动调用工具完成复杂任务。</p>
+        </div>
+      </div>
+    </div>
+    <div class="guide-tips">
+      <div class="guide-tip">
+        <div class="guide-tip-icon"><svg width="32" height="32"><use href="#icon-lightbulb"/></svg></div>
+        <div>
+          <h4>小提示</h4>
+          <p>桌面宠物支持点击互动，不同部位有不同反应。右键宠物可打开快捷菜单，快速切换模型、隐藏宠物或打开设置。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 产品展示 -->
+<section class="section showcase" id="showcase">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-label" style="color: var(--accent-light);">Showcase</span>
+      <h2 class="section-title">看得见的智能，摸得着的陪伴</h2>
+      <p class="section-subtitle">每一个交互细节都经过精心打磨</p>
+    </div>
+    <div class="showcase-grid">
+      <div class="showcase-content">
+        <h3>与 AI 龙虾对话，就像和朋友聊天</h3>
+        <p>支持流式输出，思考过程实时可见。工具调用、文件操作、系统命令都能在对话中完成，AI 会一步步展示它的思考和执行过程。</p>
+        <ul class="showcase-list">
+          <li>流式对话输出，响应零延迟</li>
+          <li>思考过程透明可见，AI 不再是黑盒</li>
+          <li>工具调用卡片，执行过程一目了然</li>
+          <li>支持文件拖拽上传，AI 自动读取分析</li>
+          <li>多角色智能体，按需切换专业能力</li>
+        </ul>
+      </div>
+      <div class="showcase-visual">
+        <div class="mock-window" style="overflow:hidden;">
+          <div class="mock-window-header">
+            <span class="pet-card-dot red"></span>
+            <span class="pet-card-dot yellow"></span>
+            <span class="pet-card-dot green"></span>
+            <span style="margin-left:8px;font-size:12px;color:rgba(255,255,255,0.7);">AI龙虾 - 智能对话</span>
+          </div>
+          <div style="padding:0;background:#0d0d1a;display:flex;align-items:center;justify-content:center;min-height:300px;">
+            <img src="images/main-window.png" alt="AI龙虾主界面" style="max-width:100%;max-height:400px;object-fit:contain;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 下载区 -->
+<section class="section download" id="download">
+  <div class="section-container">
+    <div class="download-card">
+      <h2>现在就把 AI 龙虾领回家</h2>
+      <p>Windows 10/11 免费下载，无需注册，开箱即用</p>
+      <div class="download-buttons">
+        <a href="https://github.com/yonggezx/ai-lobster-update/releases/latest/download/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe" class="btn-white" target="_blank" rel="noopener">
+          <svg width="18" height="18"><use href="#icon-download"/></svg>
+          Windows 下载
+        </a>
+        <a href="https://github.com/yonggezx/ai-lobster-update" class="btn-outline-white" target="_blank" rel="noopener">
+          <svg width="18" height="18"><use href="#icon-github"/></svg>
+          GitHub 仓库
+        </a>
+      </div>
+      <div class="download-info">v1.0.7 · 约 120MB · 支持 Windows 10/11 64位 · <a href="https://github.com/yonggezx/ai-lobster-update/releases/latest" target="_blank" style="color:rgba(255,255,255,0.8);text-decoration:underline;">查看历史版本</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3><img src="images/app-icon.png" alt="" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">AI龙虾</h3>
+        <p>智能桌面宠物助手，让 AI 陪伴你的每一天。开源免费，隐私优先，本地运行。</p>
+      </div>
+      <div class="footer-col">
+        <h4>产品</h4>
+        <ul>
+          <li><a href="#features">功能特性</a></li>
+          <li><a href="#showcase">产品展示</a></li>
+          <li><a href="#download">下载安装</a></li>
+          <li><a href="javascript:void(0)" onclick="openModal('changelog')">更新日志</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>资源</h4>
+        <ul>
+          <li><a href="javascript:void(0)" onclick="openModal('docs')">使用文档</a></li>
+          <li><a href="javascript:void(0)" onclick="openModal('model-guide')">模型导入指南</a></li>
+          <li><a href="javascript:void(0)" onclick="openModal('ai-config')">AI 配置教程</a></li>
+          <li><a href="javascript:void(0)" onclick="openModal('faq')">常见问题</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>联系我们</h4>
+        <ul>
+          <li><a href="javascript:void(0)" onclick="openModal('contact')">联系方式</a></li>
+          <li><a href="https://github.com/yonggezx/ai-lobster-update" target="_blank" rel="noopener">GitHub 仓库</a></li>
+          <li><a href="javascript:void(0)" onclick="openModal('feedback')">问题反馈</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AI龙虾. 基于 MIT 协议开源</span>
+      <span id="footer-version">v1.0.7</span>
+      <span>Made with <svg width="14" height="14" style="vertical-align:middle;display:inline-block;margin:0 2px;"><use href="#icon-heart"/></svg> by AI Lobster Team</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// 导航栏滚动效果
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+// 平滑滚动
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+
+// ===== 模态框功能 =====
+const modalContents = {
+  docs: {
+    title: '使用文档',
+    body: `
+      <h4>快速开始</h4>
+      <p>AI龙虾是一款智能桌面宠物助手，集成了 Live2D 虚拟形象、本地 AI 推理和自然语言系统操作能力。</p>
+      <h4>主要功能</h4>
+      <ul>
+        <li><strong>AI 对话</strong>：支持本地 Ollama 和云端 API，流式输出，Agent 模式可调用工具</li>
+        <li><strong>桌面宠物</strong>：Live2D 模型展示，点击互动，右键快捷菜单</li>
+        <li><strong>模型管理</strong>：导入 Live2D 模型，管理动作和表情</li>
+        <li><strong>文件管理</strong>：通过自然语言管理本地文件</li>
+        <li><strong>系统终端</strong>：AI 可执行系统命令</li>
+        <li><strong>软件管理</strong>：安装、卸载、启动软件</li>
+      </ul>
+      <h4>快捷键</h4>
+      <ul>
+        <li><code>Ctrl+Shift+P</code>：打开/隐藏宠物</li>
+        <li><code>Ctrl+Shift+A</code>：打开 AI 对话</li>
+        <li><code>Esc</code>：关闭当前窗口</li>
+      </ul>
+    `
+  },
+  'model-guide': {
+    title: '模型导入指南',
+    body: `
+      <h4>支持的模型格式</h4>
+      <p>AI龙虾支持所有标准 Live2D 模型，包括 Cubism 2.0、3.0 和 4.0 版本。</p>
+      <h4>导入步骤</h4>
+      <ol>
+        <li>打开应用，进入「模型管理」页面</li>
+        <li>点击「导入模型」按钮</li>
+        <li>选择模型文件夹（包含 .model3.json 或 .model.json 的目录）</li>
+        <li>等待模型解析完成，自动加载纹理和动作</li>
+        <li>点击模型即可切换为当前宠物</li>
+      </ol>
+      <h4>模型结构要求</h4>
+      <ul>
+        <li>必须包含模型配置文件（.model3.json 或 .model.json）</li>
+        <li>纹理图片（.png）需在配置文件指定路径</li>
+        <li>动作文件（.motion3.json）可选，放在 motions 目录</li>
+        <li>物理文件（.physics3.json）可选</li>
+      </ul>
+      <h4>常见问题</h4>
+      <p>如果模型加载失败，请检查配置文件路径是否正确，纹理图片是否完整。部分模型可能需要手动调整缩放和位置参数。</p>
+    `
+  },
+  'ai-config': {
+    title: 'AI 配置教程',
+    body: `
+      <h4>本地模型（Ollama）</h4>
+      <ol>
+        <li>安装 Ollama：从 <code>ollama.com</code> 下载并安装</li>
+        <li>拉取模型：运行 <code>ollama pull qwen3:8b</code></li>
+        <li>打开 AI龙虾，进入「AI 配置」页面</li>
+        <li>选择「Ollama」提供商，点击「一键接入」</li>
+        <li>选择已安装的模型，保存配置</li>
+      </ol>
+      <h4>云端 API</h4>
+      <p>支持以下云端提供商：</p>
+      <ul>
+        <li><strong>OpenAI</strong>：API Key 配置</li>
+        <li><strong>DeepSeek</strong>：API Key 配置</li>
+        <li><strong>阿里云百炼</strong>：API Key + 模型名称</li>
+        <li><strong>腾讯混元</strong>：API Key 配置</li>
+        <li><strong>智谱 AI</strong>：API Key 配置</li>
+        <li><strong>百度文心</strong>：API Key 配置</li>
+        <li><strong>月之暗面</strong>：API Key 配置</li>
+        <li><strong>自定义</strong>：支持任何 OpenAI 兼容接口</li>
+      </ul>
+      <h4>Agent 模式</h4>
+      <p>开启 Agent 模式后，AI 可以调用以下工具：</p>
+      <ul>
+        <li>执行系统命令（run_shell）</li>
+        <li>读取文件（read_file）</li>
+        <li>写入文件（write_file）</li>
+        <li>获取系统信息（get_system_info）</li>
+        <li>宠物动作控制（pet_action）</li>
+      </ul>
+      <p>可在设置中配置工具自动授权，避免每次确认。</p>
+    `
+  },
+  faq: {
+    title: '常见问题',
+    body: `
+      <h4>Q: 应用启动后宠物不显示？</h4>
+      <p>A: 请检查是否已导入模型，在模型管理页面选择一个模型作为当前宠物。如果仍不显示，尝试重启应用。</p>
+      <h4>Q: Ollama 模型连接失败？</h4>
+      <p>A: 请确认 Ollama 已启动（运行 <code>ollama serve</code>），并且已拉取对应模型。默认地址为 <code>http://127.0.0.1:11434</code>。</p>
+      <h4>Q: AI 回复很慢？</h4>
+      <p>A: 本地模型速度取决于电脑配置，建议使用 8B 以下参数的模型。云端 API 速度通常更快，但需要网络连接。</p>
+      <h4>Q: 如何更新应用？</h4>
+      <p>A: 应用会自动检查更新，发现新版本时会提示下载。也可以在设置页面手动检查更新。更新包支持完整包和增量补丁两种方式。</p>
+      <h4>Q: 模型动作不播放？</h4>
+      <p>A: 请检查模型是否包含动作文件（.motion3.json）。部分模型只有 idle 动作，点击互动可能没有反应。可以在模型管理中查看动作列表。</p>
+      <h4>Q: Agent 工具执行失败？</h4>
+      <p>A: 部分系统命令需要管理员权限，应用会弹出 UAC 提权窗口。也可以在设置中开启自动授权，减少确认弹窗。</p>
+      <h4>Q: 数据会上传到云端吗？</h4>
+      <p>A: 使用本地 Ollama 模型时，所有对话数据完全在本地处理，不会上传。使用云端 API 时，对话内容会发送到对应服务商的服务器。</p>
+    `
+  },
+  contact: {
+    title: '联系我们',
+    body: `
+      <p>如有任何问题或建议，欢迎通过以下方式联系我们：</p>
+      <div class="contact-item">
+        <div class="contact-icon qq"><svg width="24" height="24"><use href="#icon-qq"/></svg></div>
+        <div class="contact-info">
+          <h5>QQ</h5>
+          <span>467671982</span>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon phone"><svg width="24" height="24"><use href="#icon-phone"/></svg></div>
+        <div class="contact-info">
+          <h5>联系电话</h5>
+          <span>17633736164</span>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon github"><svg width="24" height="24"><use href="#icon-github"/></svg></div>
+        <div class="contact-info">
+          <h5>GitHub</h5>
+          <a href="https://github.com/yonggezx/ai-lobster-update" target="_blank" rel="noopener">github.com/yonggezx/ai-lobster-update</a>
+        </div>
+      </div>
+      <p style="margin-top:20px;color:var(--text-muted);font-size:13px;">工作时间：周一至周五 9:00-18:00，我们会尽快回复您的问题。</p>
+    `
+  },
+  feedback: {
+    title: '问题反馈',
+    body: `
+      <h4>反馈渠道</h4>
+      <p>您可以通过以下方式反馈问题：</p>
+      <ul>
+        <li><strong>QQ</strong>：467671982（推荐，响应最快）</li>
+        <li><strong>GitHub Issues</strong>：在仓库提交 issue</li>
+        <li><strong>电话</strong>：17633736164</li>
+      </ul>
+      <h4>反馈时请提供</h4>
+      <ul>
+        <li>应用版本号（在「关于」页面查看）</li>
+        <li>操作系统版本（Windows 10/11）</li>
+        <li>问题描述和复现步骤</li>
+        <li>截图或录屏（如有）</li>
+        <li>日志文件（在设置中导出）</li>
+      </ul>
+      <h4>功能建议</h4>
+      <p>欢迎提出新功能建议！我们会认真评估每一条反馈，并在后续版本中优先实现高需求的功能。</p>
+    `
+  },
+  changelog: {
+    title: '更新日志',
+    body: `
+      <h4>v1.0.7（最新）</h4>
+      <ul>
+        <li>新增 Agent 智能体模式，支持工具调用</li>
+        <li>新增多角色智能体系统，6个预设角色</li>
+        <li>优化本地 AI 模型显存释放</li>
+        <li>修复模型闲时动作异常问题</li>
+        <li>新增跟随系统深浅色主题</li>
+        <li>优化更新系统，支持增量补丁</li>
+      </ul>
+      <h4>v1.0.6</h4>
+      <ul>
+        <li>新增 LobeHub 模型图标集成</li>
+        <li>优化 AI 对话流式输出</li>
+        <li>新增文件拖拽上传功能</li>
+        <li>修复多个已知问题</li>
+      </ul>
+      <h4>v1.0.5</h4>
+      <ul>
+        <li>新增 Live2D 模型点击部位互动</li>
+        <li>优化模型导入流程</li>
+        <li>新增右键快捷菜单</li>
+        <li>性能优化和稳定性提升</li>
+      </ul>
+      <p style="margin-top:16px;color:var(--text-muted);font-size:13px;">完整更新日志请在应用内「关于」页面查看。</p>
+    `
+  }
+};
+
+function openModal(type) {
+  const content = modalContents[type];
+  if (!content) return;
+  document.getElementById('modalTitle').textContent = content.title;
+  document.getElementById('modalBody').innerHTML = content.body;
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// 点击遮罩关闭
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ESC 键关闭
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// 版本号自动更新（构建时由脚本替换为 package.json 中的版本号）
+const APP_VERSION = 'v1.0.7';
+document.getElementById('footer-version').textContent = APP_VERSION;
+
+// 滚动动画
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.feature-card, .showcase-content, .showcase-visual').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(30px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(el);
+});
+</script>
+
+
+<!-- 模态框 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">标题</h3>
+      <button class="modal-close" id="modalClose" onclick="closeModal()">
+        <svg width="20" height="20"><use href="#icon-close"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+</body>
+</html>
