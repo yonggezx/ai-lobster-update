@@ -1,6 +1,6 @@
 {
   "version": "1.0.7",
-  "releaseDate": "2026-09-05",
-  "releaseNotes": "",
+  "releaseDate": "2026-09-07",
+  "releaseNotes": "1. 【消灭bug怪兽】修复了那个让人抓狂的bug（77bb4ac）\n2. 【项目初生】代码世界正式开启，万物待启（ff0176b）",
   "tag": "v1.0.7"
 }
