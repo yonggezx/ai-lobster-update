@@ -1,4 +1,12 @@
 {
-  "fullInstall": null,
-  "_note": "暂无可用的完整安装包（分卷未发布）。发布完整包时，把 fullInstall 填成 { version, url, size, checksum, changes, releaseDate, isFullPackage: true, parts: [{ index, url, size }] } 再同步到 GitHub。客户端读此文件失败时会当作“暂无完整包”，不会报错。"
+  "fullInstall": {
+    "version": "1.0.7",
+    "releaseDate": "2026-09-10",
+    "changes": "",
+    "url": "https://github.com/yonggezx/ai-lobster-update/releases/download/v1.0.7/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe",
+    "checksum": "rgm6TEpN8iyysBdX7y7+GPTLRgkVpQT/nxNCv5BvknfrdeNB6IKQ6V+ax4vlQsuj0tqCYYcCu0cKcpT51Qszcw==",
+    "size": 263213117,
+    "fileName": "AI龙虾_Setup_v1.0.7.exe",
+    "tag": "v1.0.7"
+  }
 }
