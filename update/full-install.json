@@ -1,11 +1,11 @@
 {
   "fullInstall": {
     "version": "1.0.7",
-    "releaseDate": "2026-09-18",
+    "releaseDate": "2026-09-19",
     "changes": "",
     "url": "https://github.com/yonggezx/ai-lobster-update/releases/download/v1.0.7/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe",
-    "checksum": "Wxf1q4bRmKiSNeW+oz2T4+MC5K5dDQ0OlLnyTcsI+JBYpB5PMLyFTVfQ0nG43Qi4L5x+X5OlwMRUT9evH9n8zQ==",
-    "size": 270101124,
+    "checksum": "3e6VlKkEjUDfH5DT65wkQ3QlwGSJq99uKVwZYt4qevF3NblQ+qdb7W/VS8zhzSsNg9uP26G5dXxH6fVfTpgu1g==",
+    "size": 270125001,
     "fileName": "AI龙虾_Setup_v1.0.7.exe",
     "tag": "v1.0.7"
   }
