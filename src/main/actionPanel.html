@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>动作模组</title>
+<style>
+  :root{
+    --bg-secondary:#1b1f27;
+    --bg-tertiary:rgba(127,127,127,.08);
+    --bg-hover:rgba(255,255,255,.1);
+    --border-color:rgba(255,255,255,.14);
+    --text-primary:#e8e8ef;
+    --text-secondary:#b9c2d0;
+    --text-weak:#8a94a6;
+    --accent:#36d6c3;
+    --accent-glow:rgba(54,214,195,.25);
+    --expr-color:#ffb7c5;
+  }
+  /* 浅色主题 */
+  [data-theme="light"]{
+    --bg-secondary:#ffffff;
+    --bg-tertiary:rgba(0,0,0,.05);
+    --bg-hover:rgba(0,0,0,.06);
+    --border-color:rgba(0,0,0,.12);
+    --text-primary:#1a1a2e;
+    --text-secondary:#4a4a5e;
+    --text-weak:#8a8a9e;
+    --accent:#00a896;
+    --accent-glow:rgba(0,168,150,.15);
+    --expr-color:#e8789a;
+  }
+  html,body{margin:0;padding:0;height:100%;background:transparent;color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none}
+  .panel-card{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;width:100%;height:100%;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.45);overflow:hidden;color:var(--text-primary);animation:panelFade .15s ease}
+  @keyframes panelFade{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;border-bottom:1px solid var(--border-color);-webkit-app-region:drag}
+  .panel-title{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--accent)}
+  .panel-close{cursor:pointer;font-size:18px;line-height:1;color:var(--text-weak);padding:2px 6px;border-radius:6px;transition:color .12s,background .12s;-webkit-app-region:no-drag}
+  .panel-close:hover{color:var(--text-primary);background:var(--bg-hover)}
+  .panel-list{padding:6px;overflow-y:auto;flex:1}
+  .panel-list::-webkit-scrollbar{width:6px}
+  .panel-list::-webkit-scrollbar-track{background:transparent}
+  .panel-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:3px}
+  .panel-list::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.4)}
+  .panel-group{padding:6px 8px 2px;font-size:10.5px;color:var(--text-weak);font-weight:600;letter-spacing:.3px}
+  .panel-item{display:flex;align-items:center;gap:8px;padding:7px 8px;color:var(--text-primary);font-size:12.5px;border-radius:8px;cursor:pointer;transition:background .12s}
+  .panel-item:hover{background:var(--accent-glow);color:var(--accent)}
+  .panel-item.expr:hover{background:rgba(255,183,197,.2);color:var(--expr-color)}
+  .panel-key{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;font-size:10.5px;font-weight:700;color:#1a1a1a;background:rgba(255,255,255,.85);border-radius:4px;flex-shrink:0}
+  .panel-item.expr .panel-key{background:var(--expr-color)}
+  .panel-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .panel-empty{padding:14px 10px;font-size:11.5px;color:var(--text-weak);line-height:1.6;text-align:center}
+  .panel-hint{padding:6px 8px;font-size:10px;color:var(--text-weak);text-align:center;border-top:1px solid var(--border-color);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="panel-card" id="card">
+  <div class="panel-header">
+    <span class="panel-title">Live2D 动作模组</span>
+    <span class="panel-close" id="closeBtn" title="关闭">×</span>
+  </div>
+  <div class="panel-list" id="list"></div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  
+  // 应用主题设置（随主程序主题切换）
+  var theme = params.get('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  
+  var actions = [];
+  try {
+    var raw = params.get('actions') || '[]';
+    var parsed = JSON.parse(decodeURIComponent(raw));
+    if (Array.isArray(parsed)) actions = parsed;
+  } catch (e) { console.error('动作数据解析失败:', e); }
+
+  var list = document.getElementById('list');
+  var numpadKeys = ['1','2','3','4','5','6','7','8','9','0'];
+
+  if (!actions.length) {
+    var empty = document.createElement('div');
+    empty.className = 'panel-empty';
+    empty.textContent = '当前模型没有可触发的动作组或表情。\n导入含 motions / expressions 的 Live2D 模型后，这里会自动列出。';
+    empty.style.whiteSpace = 'pre-line';
+    list.appendChild(empty);
+  } else {
+    var lastType = null;
+    actions.forEach(function(a, i) {
+      var key = numpadKeys[i] || '';
+      if (a.type !== lastType) {
+        var g = document.createElement('div');
+        g.className = 'panel-group';
+        g.textContent = a.type === 'motion' ? '动作' : '表情';
+        list.appendChild(g);
+        lastType = a.type;
+      }
+      var el = document.createElement('div');
+      el.className = 'panel-item' + (a.type === 'expr' ? ' expr' : '');
+      el.innerHTML = (key ? '<span class="panel-key">' + key + '</span>' : '') +
+                     '<span class="panel-label">' + (a.label || a.value) + '</span>';
+      el.addEventListener('click', function() {
+        window.actionPanel.trigger(a.type, a.value);
+      });
+      list.appendChild(el);
+    });
+    var hint = document.createElement('div');
+    hint.className = 'panel-hint';
+    hint.textContent = '小键盘 1-0 也可直接触发';
+    list.appendChild(hint);
+  }
+
+  document.getElementById('closeBtn').addEventListener('click', function() {
+    window.actionPanel.close();
+  });
+
+  // 窗口拖动（标题栏）
+  var header = document.querySelector('.panel-header');
+  var dragging = false;
+  var lastX = 0, lastY = 0;
+  header.addEventListener('mousedown', function(e) {
+    if (e.target.classList.contains('panel-close')) return;
+    dragging = true;
+    lastX = e.screenX;
+    lastY = e.screenY;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    var dx = e.screenX - lastX;
+    var dy = e.screenY - lastY;
+    lastX = e.screenX;
+    lastY = e.screenY;
+    if (dx !== 0 || dy !== 0) {
+      window.actionPanel.dragMove(dx, dy);
+    }
+  });
+  document.addEventListener('mouseup', function() {
+    dragging = false;
+  });
+
+  // ESC 关闭
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window.actionPanel.close();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>菜单</title>
+<style>
+  /* 与退出弹窗一致的 CSS 变量 */
+  :root{
+    --bg-secondary:#1b1f27;
+    --bg-tertiary:rgba(127,127,127,.08);
+    --bg-hover:rgba(255,255,255,.1);
+    --border-color:rgba(255,255,255,.14);
+    --text-primary:#e8e8ef;
+    --text-secondary:#b9c2d0;
+    --text-weak:#8a94a6;
+    --accent:#36d6c3;
+    --accent-glow:rgba(54,214,195,.25);
+  }
+  html,body{margin:0;padding:0;height:100%;background:transparent;color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none}
+  /* 透明背景无遮罩 */
+  .menu-overlay{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;background:transparent;outline:none;padding:8px}
+  /* 与退出弹窗 .app-dialog 一致的卡片样式 */
+  .menu-card{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;min-width:180px;max-width:280px;max-height:calc(100vh - 16px);display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.45);overflow:hidden;color:var(--text-primary);animation:menuFade .15s ease}
+  @keyframes menuFade{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .menu-list{padding:8px;overflow-y:auto;max-height:calc(100vh - 32px)}
+  .menu-list::-webkit-scrollbar{width:6px}
+  .menu-list::-webkit-scrollbar-track{background:transparent}
+  .menu-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:3px}
+  .menu-list::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.4)}
+  .menu-item{display:flex;align-items:center;gap:10px;padding:8px 12px;color:var(--text-primary);font-size:13px;border-radius:8px;cursor:pointer;transition:background .12s;white-space:nowrap}
+  .menu-item:hover{background:var(--accent-glow);color:var(--accent)}
+  .menu-item .icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .menu-item .icon svg{width:16px;height:16px;fill:currentColor}
+  .menu-divider{height:1px;background:var(--border-color);margin:6px 4px}
+  .menu-section{padding:6px 12px 2px;font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--accent);user-select:none}
+</style>
+</head>
+<body>
+<div class="menu-overlay" id="overlay">
+  <div class="menu-card" id="card">
+    <div class="menu-list" id="list"></div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var items = [];
+  try {
+    var raw = params.get('items') || '[]';
+    var parsed = JSON.parse(decodeURIComponent(raw));
+    if (Array.isArray(parsed)) items = parsed;
+  } catch (e) { console.error('菜单数据解析失败:', e); }
+
+  var list = document.getElementById('list');
+  var ICONS = {
+    chat: '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/></svg>',
+    model: '<svg viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 0 0 0-1.41z"/></svg>',
+    hide: '<svg viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27z"/></svg>',
+    settings: '<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
+    quit: '<svg viewBox="0 0 24 24"><path d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>',
+    action: '<svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
+    default: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'
+  };
+
+  function getIcon(name) {
+    return ICONS[name] || ICONS.default;
+  }
+
+  items.forEach(function(item) {
+    if (item.type === 'divider') {
+      var d = document.createElement('div');
+      d.className = 'menu-divider';
+      list.appendChild(d);
+    } else if (item.type === 'section') {
+      var s = document.createElement('div');
+      s.className = 'menu-section';
+      s.textContent = item.label || '';
+      list.appendChild(s);
+    } else {
+      var el = document.createElement('div');
+      el.className = 'menu-item';
+      el.innerHTML = '<span class="icon">' + getIcon(item.icon) + '</span><span>' + (item.label || '') + '</span>';
+      el.addEventListener('click', function() {
+        window.projectMenu.select(item.action);
+      });
+      list.appendChild(el);
+    }
+  });
+
+  // 点击外部关闭
+  document.getElementById('overlay').addEventListener('mousedown', function(e) {
+    if (e.target.id === 'overlay') {
+      window.projectMenu.close();
+    }
+  });
+
+  // ESC 关闭
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window.projectMenu.close();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>调试日志</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d1117;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Consolas', 'Monaco', 'Microsoft YaHei', monospace;
+    }
+    #title-bar {
+      
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #58a6ff;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: #161b22;
+    }
+    #title-bar .title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #title-bar .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3fb950;
+      box-shadow: 0 0 6px rgba(63, 185, 80, 0.5);
+    }
+    #title-bar .buttons {
+      display: flex;
+      gap: 6px;
+      
+    }
+    #title-bar button {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.75);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    #title-bar button:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border-color: rgba(255,255,255,0.2);
+    }
+    #title-bar button:active { transform: scale(0.96); }
+    #title-bar #close-btn {
+      background: rgba(239, 83, 80, 0.12);
+      border-color: rgba(239, 83, 80, 0.25);
+      color: #f85149;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1;
+      padding: 3px 10px;
+    }
+    #title-bar #close-btn:hover {
+      background: rgba(239, 83, 80, 0.25);
+      color: #fff;
+    }
+    #log-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      line-height: 1.6;
+      word-break: break-all;
+      height: calc(100vh - 42px);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    #log-content::-webkit-scrollbar { width: 8px; }
+    #log-content::-webkit-scrollbar-track { background: transparent; }
+    #log-content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+    #log-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+    .log-line {
+      margin-bottom: 3px;
+      padding: 2px 0;
+      border-radius: 3px;
+    }
+    .log-line:hover { background: rgba(255,255,255,0.03); }
+    .log-warn { color: #d29922; }
+    .log-error { color: #f85149; }
+    .log-info { color: #58a6ff; }
+    .log-debug { color: rgba(255,255,255,0.5); }
+    .log-time { color: rgba(255,255,255,0.3); margin-right: 8px; }
+
+    /* Toast 提示（符合项目风格，非原生 alert） */
+    #toast-container {
+      position: fixed;
+      top: 50px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #161b22;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-left: 3px solid #58a6ff;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 160px;
+      animation: toastIn 0.25s ease;
+      pointer-events: auto;
+    }
+    .toast.success { border-left-color: #3fb950; }
+    .toast.error { border-left-color: #f85149; }
+    .toast.warning { border-left-color: #d29922; }
+    .toast-icon { font-size: 14px; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(20px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <div class="title-left">
+      <span class="status-dot" id="status-dot"></span>
+      <span>调试日志</span>
+      <span style="color: rgba(255,255,255,0.3); font-weight: 400; font-size: 11px;" id="log-count">0 条</span>
+    </div>
+    <div class="buttons">
+      <button id="copy-btn" title="复制全部日志">复制</button>
+      <button id="clear-btn" title="清空日志">清空</button>
+      <button id="close-btn" title="关闭">×</button>
+    </div>
+  </div>
+  <div id="log-content"></div>
+  <div id="toast-container"></div>
+
+  <script>
+    const content = document.getElementById('log-content');
+    const copyBtn = document.getElementById('copy-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const closeBtn = document.getElementById('close-btn');
+    const logCountEl = document.getElementById('log-count');
+    const statusDot = document.getElementById('status-dot');
+    const toastContainer = document.getElementById('toast-container');
+
+    const MAX_LINES = 2000;
+    let lineCount = 0;
+
+    // Toast 提示（符合项目风格）
+    function showToast(message, type = 'info') {
+      const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span><span>' + message + '</span>';
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.25s ease forwards';
+        setTimeout(() => toast.remove(), 250);
+      }, 2000);
+    }
+
+    function updateCount() {
+      logCountEl.textContent = lineCount + ' 条';
+    }
+
+    function addLog(type, msg) {
+      const now = new Date();
+      const time = now.toLocaleTimeString('zh-CN', { hour12: false }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      const line = document.createElement('div');
+      line.className = 'log-line log-' + (type || 'info');
+      const safeMsg = String(msg == null ? '' : msg).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      line.innerHTML = '<span class="log-time">[' + time + ']</span>' + safeMsg;
+      content.appendChild(line);
+      lineCount++;
+      if (lineCount > MAX_LINES) {
+        content.removeChild(content.firstChild);
+        lineCount--;
+      }
+      updateCount();
+      // 自动滚动到底部
+      content.scrollTop = content.scrollHeight;
+    }
+
+    // 等待 window.api 就绪
+    function waitForApi(callback, maxRetries = 80) {
+      let retries = 0;
+      const check = () => {
+        if (window.api) {
+          callback();
+        } else if (retries < maxRetries) {
+          retries++;
+          setTimeout(check, 100);
+        } else {
+          addLog('error', '[DebugLog] window.api 未就绪，日志功能可能异常');
+        }
+      };
+      check();
+    }
+
+    waitForApi(() => {
+      // 注册日志接收
+      if (window.api.onDebugLog) {
+        window.api.onDebugLog((type, msg) => {
+          addLog(type, msg);
+        });
+      }
+
+      // 主动请求历史日志（避免主进程推送时机问题导致丢失）
+      if (window.api.requestDebugLogs) {
+        window.api.requestDebugLogs().then(result => {
+          if (result && result.success && result.logs && result.logs.length > 0) {
+            // 先清空，再按时间顺序添加历史日志
+            content.innerHTML = '';
+            lineCount = 0;
+            for (const log of result.logs) {
+              addLog(log.type, log.msg);
+            }
+            addLog('info', '[DebugLog] 已恢复 ' + result.count + ' 条历史日志');
+          } else {
+            addLog('info', '[DebugLog] 日志接收通道已连接，等待日志...');
+          }
+        }).catch(err => {
+          addLog('error', '[DebugLog] 请求历史日志失败: ' + err.message);
+        });
+      }
+
+      statusDot.style.background = '#3fb950';
+      statusDot.style.boxShadow = '0 0 6px rgba(63, 185, 80, 0.5)';
+    });
+
+    // 复制按钮（使用 Electron 原生 clipboard，更可靠）
+    copyBtn.addEventListener('click', () => {
+      const allText = Array.from(content.querySelectorAll('.log-line'))
+        .map(line => line.textContent)
+        .join('\n');
+      if (!allText.trim()) {
+        showToast('没有可复制的日志', 'warning');
+        return;
+      }
+      if (window.api && window.api.copyToClipboard) {
+        const ok = window.api.copyToClipboard(allText);
+        if (ok) {
+          showToast('已复制 ' + lineCount + ' 条日志', 'success');
+          const orig = copyBtn.textContent;
+          copyBtn.textContent = '已复制';
+          setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+        } else {
+          showToast('复制失败，请手动选择文本复制', 'error');
+        }
+      } else {
+        // fallback: 使用 document.execCommand
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = allText;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('已复制 ' + lineCount + ' 条日志', 'success');
+        } catch (e) {
+          showToast('复制失败: ' + e.message, 'error');
+        }
+      }
+    });
+
+    // 清空按钮
+    clearBtn.addEventListener('click', () => {
+      if (lineCount === 0) {
+        showToast('日志已经是空的', 'warning');
+        return;
+      }
+      content.innerHTML = '';
+      lineCount = 0;
+      updateCount();
+      showToast('已清空日志', 'success');
+    });
+
+    // 关闭按钮
+    closeBtn.addEventListener('click', () => {
+      if (window.api && window.api.closeDebugLogWindow) {
+        window.api.closeDebugLogWindow();
+      } else {
+        window.close();
+      }
+    });
+
+    // 快捷键：Ctrl+C 复制（当没有选中文本时复制全部）
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        const selection = window.getSelection();
+        if (!selection || selection.toString().length === 0) {
+          e.preventDefault();
+          copyBtn.click();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        clearBtn.click();
+      }
+    });
+
+    console.log('[DebugLog] 独立调试日志窗口已就绪');
+  </script>
+</body>
+</html>

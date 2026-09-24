@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>提示</title>
+<style>
+  /* ★ 与 AppDialog 完全一致的 CSS 变量定义，确保独立弹窗样式与项目规范统一 */
+  :root{
+    --bg-secondary:#1b1f27;
+    --bg-tertiary:rgba(127,127,127,.08);
+    --bg-hover:rgba(255,255,255,.1);
+    --border-color:rgba(255,255,255,.14);
+    --text-primary:#e8e8ef;
+    --text-secondary:#b9c2d0;
+    --text-weak:#8a94a6;
+    --accent:#36d6c3;
+    --accent-glow:rgba(54,214,195,.25);
+  }
+  html,body{margin:0;padding:0;height:100%;background:transparent;color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none}
+  /* 透明背景无遮罩：独立窗口只显示卡片部分 */
+  .app-dialog-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:transparent;outline:none}
+  /* ★ 与 AppDialog .app-dialog 完全一致的卡片样式 */
+  .app-dialog{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;min-width:280px;max-width:520px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.45);overflow:hidden;color:var(--text-primary);animation:appDialogFade .18s ease}
+  @keyframes appDialogFade{from{opacity:0}to{opacity:1}}
+  .app-dialog-header{display:flex;align-items:center;gap:10px;padding:18px 20px 0}
+  .app-dialog-icon{flex:0 0 auto;width:22px;height:22px;display:inline-flex}
+  .app-dialog-icon svg{width:100%;height:100%;display:block}
+  .app-dialog-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.4}
+  .app-dialog-body{padding:14px 20px 6px;font-size:13px;color:var(--text-secondary);line-height:1.6;overflow-y:auto}
+  .app-dialog-message{white-space:pre-wrap;word-break:break-word}
+  .app-dialog-detail{margin-top:10px;white-space:pre-wrap;word-break:break-word;font-size:12px;color:var(--text-weak);background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;padding:8px 10px;max-height:160px;overflow:auto}
+  .app-dialog-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px 18px;flex:0 0 auto}
+  .app-dialog-btn{height:34px;padding:0 18px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(127,127,127,.12);color:var(--text-primary);font-size:13px;cursor:pointer;font-family:inherit;transition:background .12s,border-color .12s,filter .12s}
+  .app-dialog-btn:hover{background:var(--bg-hover)}
+  .app-dialog-btn.primary{background:var(--accent);border-color:var(--accent);color:#06231f;font-weight:600}
+  .app-dialog-btn.primary:hover{filter:brightness(1.08)}
+  .app-dialog-btn:focus{outline:none;box-shadow:0 0 0 2px var(--accent-glow)}
+</style>
+</head>
+<body>
+<div class="app-dialog-overlay" id="wrap">
+  <div class="app-dialog" id="dlg" role="dialog" aria-modal="true">
+    <div class="app-dialog-header" id="head"></div>
+    <div class="app-dialog-body" id="body"></div>
+    <div class="app-dialog-footer" id="footer"></div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  // 从查询参数读取内容（由主进程通过 BrowserWindow.loadFile(path, { query }) 传入）
+  var params = new URLSearchParams(location.search);
+  var type = params.get('type') || 'info';
+  var title = params.get('title') || '';
+  var message = params.get('message') || '';
+  var detail = params.get('detail') || '';
+  var buttons = ['确定'];
+  try { var b = JSON.parse(params.get('buttons') || '[]'); if (Object.prototype.toString.call(b) === '[object Array]' && b.length) buttons = b; } catch (e) {}
+  var primaryIndex = parseInt(params.get('primaryIndex') || '0', 10) || 0;
+  var cancelId = parseInt(params.get('cancelId') || String(Math.max(0, buttons.length - 1)), 10);
+
+  var ICONS = {
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="#f5a623" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="9.5" x2="12" y2="14.5"/><circle cx="12" cy="17.5" r="0.9" fill="#f5a623" stroke="none"/></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="#e54d42" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>',
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 12.3 10.5 15.3 16.5 9"/></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="#4fc3f7" stroke="none"/></svg>'
+  };
+  function esc(s){ var v = (s == null) ? '' : String(s); return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+  var head = document.getElementById('head');
+  if (title) {
+    head.innerHTML = '<span class="app-dialog-icon">' + (ICONS[type] || ICONS.info) + '</span><span class="app-dialog-title">' + esc(title) + '</span>';
+  } else {
+    head.style.display = 'none';
+  }
+
+  var body = document.getElementById('body');
+  var bhtml = '';
+  if (message) bhtml += '<div class="app-dialog-message">' + esc(message) + '</div>';
+  if (detail) bhtml += '<div class="app-dialog-detail">' + esc(detail) + '</div>';
+  if (!bhtml) body.style.display = 'none';
+  else body.innerHTML = bhtml;
+
+  var footer = document.getElementById('footer');
+  var focused = false;
+  buttons.forEach(function(label, i){
+    var b = document.createElement('button');
+    b.className = 'app-dialog-btn' + (i === primaryIndex ? ' primary' : '');
+    b.textContent = label;
+    b.addEventListener('click', function(){
+      window.projectDialog.sendResult(i);
+    });
+    footer.appendChild(b);
+    if (i === primaryIndex && !focused) { focused = true; setTimeout(function(){ try { b.focus(); } catch (e) {} }, 10); }
+  });
+
+  // 与 AppDialog 行为一致：点击遮罩空白处不关闭，必须显式按钮 / ESC
+  document.getElementById('wrap').addEventListener('mousedown', function(e){
+    if (e.target === document.getElementById('wrap')) {
+      e.stopPropagation();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      window.projectDialog.sendResult(cancelId);
+    } else if (e.key === 'Enter') {
+      if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
+        // 焦点在按钮上时让按钮自己处理 click
+      } else {
+        e.preventDefault();
+        window.projectDialog.sendResult(primaryIndex);
+      }
+    }
+  }, true);
+})();
+</script>
+</body>
+</html>

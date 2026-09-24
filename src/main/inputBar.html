@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>输入框</title>
+<style>
+  :root{
+    --border-color:rgba(255,255,255,.14);
+    --text-weak:#8a94a6;
+  }
+  html,body{margin:0;padding:0;width:100%;height:100%;background:transparent;overflow:hidden;user-select:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+  .drag-bar{height:6px;cursor:move;-webkit-app-region:drag;background:transparent}
+  .input-card{background:rgba(20,20,28,0.95);backdrop-filter:blur(15px);border:1px solid var(--border-color);border-radius:14px;width:310px;margin:0 auto;padding:8px 10px 8px;box-shadow:0 4px 20px rgba(0,0,0,.35);animation:inputFade .18s ease}
+  @keyframes inputFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .input-wrapper{display:flex;gap:6px;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:2px 2px 2px 12px;transition:border-color .2s}
+  .input-wrapper:focus-within{border-color:rgba(79,195,247,.5);box-shadow:0 0 0 2px rgba(79,195,247,.15)}
+  #pet-input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:13px;padding:7px 0;font-family:inherit}
+  #pet-input::placeholder{color:rgba(255,255,255,.35)}
+  #pet-send{width:30px;height:30px;border:none;background:linear-gradient(135deg,#4fc3f7 0%,#29b6f6 100%);border-radius:8px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s}
+  #pet-send:hover{transform:scale(1.08)}
+  #pet-send svg{width:15px;height:15px;fill:#fff}
+  .input-hint{font-size:9.5px;color:var(--text-weak);text-align:center;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="drag-bar" id="dragBar"></div>
+<div class="input-card" id="card">
+  <div class="input-wrapper">
+    <input type="text" id="pet-input" placeholder="给龙虾下达指令..." autocomplete="off">
+    <button id="pet-send" title="发送">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="input-hint">回车发送 · 顶部拖动</div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var input = document.getElementById('pet-input');
+  var sendBtn = document.getElementById('pet-send');
+
+  function send() {
+    var text = input.value.trim();
+    if (!text) return;
+    window.inputBar.send(text);
+    input.value = '';
+  }
+
+  sendBtn.addEventListener('click', send);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    if (e.key === 'Escape') input.blur();
+  });
+  input.addEventListener('focus', function() { window.inputBar.focusChange(true); });
+  input.addEventListener('blur', function() { window.inputBar.focusChange(false); });
+
+  // 顶部拖动条拖动
+  var dragBar = document.getElementById('dragBar');
+  var dragging = false, lastX = 0, lastY = 0;
+  dragBar.addEventListener('mousedown', function(e) {
+    dragging = true; lastX = e.screenX; lastY = e.screenY; e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    var dx = e.screenX - lastX, dy = e.screenY - lastY;
+    lastX = e.screenX; lastY = e.screenY;
+    if (dx !== 0 || dy !== 0) window.inputBar.dragMove(dx, dy);
+  });
+  document.addEventListener('mouseup', function() { dragging = false; });
+
+  setTimeout(function() { input.focus(); }, 80);
+})();
+</script>
+</body>
+</html>

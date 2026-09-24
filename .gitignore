@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+node_modules_cache/
+
+# Build output
+dist/
+out/
+build/
+installer-app/resources/app.7z
+installer-app/resources/uninstaller.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Lanzou config (contains cookie secrets)
+.lanzou-config.json
+
+# Temp build artifacts
+_main_js_full.txt
+_patch-tmp/
+
+# Data
+data/
+userData/
+
+# Temp
+tmp/
+temp/
+*.tmp
+# Native injector / build junk (public repo keeps source only)
+*.bak
+*.dll
+src/main/taskbar-inject/*.bat
+src/main/taskbar-inject/*.zip

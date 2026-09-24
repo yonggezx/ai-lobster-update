@@ -1,0 +1,62 @@
+{
+  "name": "fuling-shijie",
+  "version": "1.0.7",
+  "description": "浮灵饰界 - 智能桌面宠物助手，支持Live2D模型、本地/云端AI模型、系统操作",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "prebuild": "node scripts/copy-build-resources.js",
+    "build:win-dir": "npm run prebuild && electron-builder --win --x64 --dir",
+    "build:web-installer": "node scripts/build-web-installer.js",
+    "optimize:cursors": "electron scripts/optimize-cursor-assets.js",
+    "test:cursor": "electron scripts/test-cursor-perf.js",
+    "test:active-provider": "electron scripts/test-ai-active-provider.js"
+  },
+  "author": "浮灵饰界",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.fuling.shijie",
+    "productName": "浮灵饰界",
+    "copyright": "Copyright © 2026 浮灵饰界",
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "!assets/cursors/_source/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "yonggezx",
+      "repo": "fuling-shijie-update",
+      "releaseType": "release"
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "electron-updater": "^6.8.9",
+    "koffi": "^3.1.5",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.2"
+  }
+}
