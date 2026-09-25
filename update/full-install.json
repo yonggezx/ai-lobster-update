@@ -1,12 +1,12 @@
 {
   "fullInstall": {
     "version": "1.0.7",
-    "releaseDate": "2026-09-24",
+    "releaseDate": "2026-09-25",
     "changes": "",
-    "url": "https://github.com/yonggezx/ai-lobster-update/releases/download/v1.0.7/AI%E9%BE%99%E8%99%BE_Setup_v1.0.7.exe",
-    "checksum": "/ZCBdPHFwyj6tkeMukRxOpkX7UbRgJeoOiO/1pfzztDH1A0xX3vuyYBI0JNGhhisTffEw92MnwFd+y27Y+D01g==",
-    "size": 270336318,
-    "fileName": "AI龙虾_Setup_v1.0.7.exe",
+    "url": "https://github.com/yonggezx/fuling-shijie-update/releases/download/v1.0.7/%E6%B5%AE%E7%81%B5%E9%A5%B0%E7%95%8C_Setup_v1.0.7.exe",
+    "checksum": "mP4SZyRN4NATHbLdL9SueLydYXoMUtET8ok6m0IbK2Yx2H6WoGbxSjc1NzyxBJonm9WpXPT4G9/2+fDHUynl2Q==",
+    "size": 275789605,
+    "fileName": "浮灵饰界_Setup_v1.0.7.exe",
     "tag": "v1.0.7"
   }
 }
